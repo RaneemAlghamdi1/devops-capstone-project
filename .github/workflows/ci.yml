@@ -1,0 +1,48 @@
+name: CI Pipeline  # هذا هو اسم الـ Workflow، يمكنك تغيير الاسم
+
+on:
+  pull_request:
+    branches:
+      - main  # أي طلب سحب إلى الفرع الرئيسي "main" سيشغل الـ CI
+
+jobs:
+  linting:
+    runs-on: ubuntu-latest  # سيعمل على بيئة Ubuntu
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2  # يقوم بفحص الكود من المستودع
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'  # تحديد إصدار بايثون الذي تستخدمه
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt  # تثبيت المتطلبات
+          pip install pylint  # تثبيت pylint الخاص بالفحص
+
+      - name: Run linting
+        run: |
+          pylint --max-line-length=120 .  # تشغيل فحص الكود باستخدام pylint
+
+  tests:
+    runs-on: ubuntu-latest  # سيعمل على بيئة Ubuntu
+    needs: linting  # سيتطلب إتمام الـ linting أولاً
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2  # يقوم بفحص الكود من المستودع
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'  # تحديد إصدار بايثون الذي تستخدمه
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt  # تثبيت المتطلبات
+          pip install pytest  # تثبيت pytest لاختبارات الوحدة
+
+      - name: Run tests
+        run: |
+          pytest --maxfail=1 --disable-warnings -q  # تشغيل اختبارات الوحدة باستخدام pytest
